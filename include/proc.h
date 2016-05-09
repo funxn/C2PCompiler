@@ -26,3 +26,12 @@ void errPrint(int row, int volumn, int errType);
 //================================================================
 //				Tools_functions
 //================================================================
+
+// 语法分析下属函数
+int closure_func(PROJECT_SET* p_set);
+int go_func(int ps_index, int m);
+void goto_action();
+int proj_equal(PROJECT* proj1, PROJECT* proj2);
+int proj_include(PROJECT_SET* p_set, PROJECT* p);
+void projset_add(PROJECT_SET* p_set, PROJECT* p);
+int projset_equal(PROJECT_SET* p_set1, PROJECT_SET* p_set2);

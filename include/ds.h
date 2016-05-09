@@ -110,3 +110,13 @@ typedef struct PROJ_SET{
 
 PROJECT_SET PS[PROJECT_SET_NUM];
 int PS_CUR_NUM;						// 记录当前的项目集的个数
+
+// goto数组
+int gto[PROJECT_SET_NUM][VN_NUM];
+
+// action数组
+typedef struct{
+	int rs;
+	int no;
+}act_block;
+act_block act[PROJECT_SET_NUM][VT_NUM];

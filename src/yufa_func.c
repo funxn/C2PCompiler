@@ -85,8 +85,62 @@ int closure_func(PROJECT_SET* p_set){
 	return i;
 }
 
-void go_func(int ps_index, int m){
-	
+// 构建一个新的项目集存储go一步之后的待closure分析的项目集合
+int go_func(int ps_index, int m){
+	int i;
+	PROJECT_SET p_set_new;
+
+	for(i=0; i<len; i++){
+		if(PS[ps_index].proj[i].this_proj[PS[ps_index].proj[i].pos] == m){
+			PS[ps_index].proj[i].pos ++;
+			p_set_new.proj[p_set_new.len++] = PS[ps_index].proj[i];
+		}
+	}
+
+	return closure_func(&p_set_new);
+}
+
+// goto, action的生成：
+void goto_action(){
+	int i, j, k, h;					
+	int searched_m[VAR_NUM];					// 记录每一次对项目集处理时已经处理过的符号
+	int searched_flag;
+	int this_m;									// 待传入go_func()的符号
+	// 对每一个项目集
+	for(i=0; i<PS_CUR_NUM; i++){
+		k=0;
+		memset(searched_m, 0, VAR_NUM*sizeof(int));
+		//对每一个项目集中的项目
+		for(j=0; j<PS[i].len; j++){
+			this_m = PS[i].proj[j].thisOp[PS[i].proj[j].pos];
+
+			// ACC完成
+			if(this_m == 0 && PS[i].proj[j].tail[0] == END_NUM && PS[i].proj[j].thisOp[0] == STA_NUM)
+				act[i][this_m] = {ACC, 0};
+			// R回退
+			else if(this_m == 0 && PS[i].proj[j].tail[0] == END_NUM)
+				act[i][this_m] = {R, PS[i].proj[j].thisOp[0]};
+			else{
+				searched_flag = 0;
+				for(h=0; h<k; h++){
+					if(this_m == set[h]){
+						searched_flag = 1;
+						break;
+					}
+				}
+
+				// 若PS[i]项目集中pos位置中有符号未处理
+				if(searched_flag != 1){
+					searched_m[k++] = this_m;
+					// 添加到GOTO表
+					if(this_m <= VN_NUM)
+						gto[i][this_m] = go_func(PS[i], this_m);
+					else
+						action[i][this_m] = {S, go_func(PS[i], this_m)};
+				}
+			}
+		}
+	}
 }
 
 // 判断两个项目是否相等
