@@ -20,5 +20,8 @@
 #define 	PROJ_NUM	100
 #define 	TAIL_LEN	50
 
+// 项目集规范族的个数
+#define		PROJECT_SET_NUM		500
+
 // buffer size
 #define 	BUF_SIZE 	1024
