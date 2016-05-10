@@ -8,7 +8,7 @@
 
 // 记录产生是非终结符数量
 #define		VAR_NUM		6
-#define		VN_NUM		3
+#define		VN_NUM		33
 #define		VT_NUM		3
 #define		GENOP_NUM	VN_NUM+1
 #define		STA_NUM		x 						// 记录开始符号 S’ 的编号

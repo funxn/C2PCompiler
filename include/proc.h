@@ -11,6 +11,8 @@ TOKEN Scanner();
  */
 void Grammer();
 
+void Semantic();
+
 /*
  * log() 日志处理
  */
