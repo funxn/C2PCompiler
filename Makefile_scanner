@@ -1,0 +1,20 @@
+CC		= cc -g
+CFLAGS	= -I include/
+TARGET  = com
+OBJS	= lib/ds.o src/scanner.o
+
+.PHONY: all clean
+
+all: $(TARGET)
+
+clean:
+	rm -f $(TARGET) $(OBJS)
+
+$(TARGET): $(OBJS)
+	$(CC) -o $(TARGET) $(OBJS)
+
+lib/ds.o: lib/ds.c include/ds.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+src/scanner.o: src/scanner.c include/ds.h
+	$(CC) $(CFLAGS) -c $< -o $@

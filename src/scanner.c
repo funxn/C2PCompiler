@@ -9,7 +9,7 @@
 
 #define TOKEN_SIZE 32			// 限定标识符长度
 
-int LexAnalysis();
+int LexAnalysis(char* str);
 int isLetter(char ch);
 int isDigit(char ch);
 int reserve(char* str);
@@ -27,13 +27,15 @@ int main(int argc, char* argv[]){
 
 // 词法分析主程序
 int LexAnalysis(char* str){
+	int thisline;
+
 	FILE *source;				// source: the C source file
 	if((source = fopen(str, "r")) == NULL){
 		printf("can't open file %s!", str);
 		exit(0);
 	}
 	FILE *target;				// source: the C source file
-	if((target = fopen("target.c", "w")) == NULL){
+	if((target = fopen("target.pas", "w")) == NULL){
 		printf("can't open file target.c!");
 		exit(0);
 	}
@@ -44,6 +46,12 @@ int LexAnalysis(char* str){
 	int flag = 0;					// 用于对缓冲区半区切换进行标记。flag!=0时，记录的是token的长度
 	char token[TOKEN_SIZE] = "";
 	int token_i = 0;				// token数组游标
+
+	// 2016.05.12添加
+	int reserve_i;
+	int point_flag;					// 识别浮点数使用，只能出现一次
+
+
 	int varw = 0;
 	char ch;
 	
@@ -53,10 +61,15 @@ int LexAnalysis(char* str){
 	flag = 0;
 	while((ch=buf[buf_k][i]) != '\0'){
 		memset(token, 0, sizeof(token));
-		token_i = 0;				// *********
+		token_i = 0;
+		point_flag = 1;				// *********
 		// get_nbc();
-		while((ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') && ch != '\0')
+		while((ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') && ch != '\0'){
 			ch = buf[buf_k][++i];
+			if(ch == '\n')
+				thisline++;
+		}
+			
 		/*
 		 * 修正：当ch=='\0'时，不便于修改flag的值，所以在此处将j回退，显示为正常水平
 		 */
@@ -70,12 +83,12 @@ int LexAnalysis(char* str){
 			case '<':
 				ch = buf[buf_k][++j];
 				if(ch == '='){
-					strcpy(token, "relop LE\n");
-					fwrite(token, sizeof(char), 9, target);
+					strcpy(token, "42 relop 12\n");
+					fwrite(token, sizeof(char), 12, target);
 				}
 				else if(ch == '>'){
-					strcpy(token, "relop NE\n");
-					fwrite(token, sizeof(char), 9, target);
+					strcpy(token, "42 relop 10\n");
+					fwrite(token, sizeof(char), 12, target);
 				}
 				else if(ch == '\0'){
 					token[0] = '<';
@@ -83,15 +96,15 @@ int LexAnalysis(char* str){
 				}
 				else{
 					j--;
-					strcpy(token, "relop LT\n");
-					fwrite(token, sizeof(char), 9, target);
+					strcpy(token, "42 relop 11\n");
+					fwrite(token, sizeof(char), 12, target);
 				}
 				break;
 			case '>':
 				ch = buf[buf_k][++j];
 				if(ch == '='){
-					strcpy(token, "relop GE\n");
-					fwrite(token, sizeof(char), 9, target);
+					strcpy(token, "42 relop 14\n");
+					fwrite(token, sizeof(char), 12, target);
 				}
 				else if(ch == '\0'){
 					token[0] = '>';
@@ -99,56 +112,33 @@ int LexAnalysis(char* str){
 				}
 				else{
 					j--;
-					strcpy(token, "relop GT\n");
-					fwrite(token, sizeof(char), 9, target);
+					strcpy(token, "42 relop 13\n");
+					fwrite(token, sizeof(char), 12, target);
 				}
 				break;
 			case '=':
-				strcpy(token, "relop EQ\n");
-				fwrite(token, sizeof(char), 9, target);
+				strcpy(token, "42 relop 9\n");
+				fwrite(token, sizeof(char), 11, target);
 				break;
-			case '/':
-				ch = buf[buf_k][++j];
-				if(ch == '*'){
-					while(ch != '/'){
-						while((ch = buf[buf_k][++j]) != '*' && ch != '\0');
-						if(ch == '\0'){
-							token[0] = '/';
-							token[1] = '*';
-							flag = sizeof(token);
-						}
-						if((ch = buf[buf_k][++j]) == '*')
-							j--;
-						else if(ch == '\0'){
-							token[0] = '/';
-							token[1] = '*';
-							token[3] = '*';
-							flag = sizeof(token);
-						}
-					}
-				}
-				else if(ch == '/'){
-					while((ch = buf[buf_k][++j]) != '\n' && ch != '\0');
-					if(ch == '\0'){
-						token[0] = '/';
-						token[1] = '/';
-						flag = sizeof(token);
-					}
-				}
-				else if(ch == '\0'){
-					token[0] = '/';
+			case '{':
+				while((ch = buf[buf_k][++j]) != '}' && ch != '\0'){
+					if(ch == '\n')
+						thisline++;
+					};
+				if(ch == '\0'){
+					token[0] = '}';
 					flag = sizeof(token);
 				}
-				else{
-					strcpy(token, "/ null\n");
-					fwrite(token, sizeof(char), 7, target);
+				else if(ch == EOF){
+					printf("error: unclosed comment! Line: %d\n", thisline);
+					exit(1);
 				}
 				break;
 			case ':':
 				ch = buf[buf_k][++j];
 				if(ch == '='){
-					strcpy(token, "assign-op null\n");
-					fwrite(token, sizeof(char), 15, target);
+					strcpy(token, "41 assignop 8\n");
+					fwrite(token, sizeof(char), 14, target);
 				}
 				else if(ch == '\0'){
 					token[0] = ':';
@@ -156,38 +146,53 @@ int LexAnalysis(char* str){
 				}
 				else{
 					j--;
-					strcpy(token, ": null\n");
-					fwrite(token, sizeof(char), 7, target);
+					strcpy(token, "45 : 17\n");
+					fwrite(token, sizeof(char), 8, target);
 				}
 				break;
 			case '+':
-				strcpy(token, "+ null\n");
-				fwrite(token, sizeof(char), 7, target);
+				strcpy(token, "39 addop 2\n");
+				fwrite(token, sizeof(char), 11, target);
 				break;
 			case '-':
-				strcpy(token, "- null\n");
-				fwrite(token, sizeof(char), 7, target);
+				strcpy(token, "39 addop 3\n");
+				fwrite(token, sizeof(char), 11, target);
+				break;
+			case '*':
+				strcpy(token, "40 mulop 4\n");
+				fwrite(token, sizeof(char), 11, target);
+				break;
+			case '/':
+				strcpy(token, "40 mulop 5\n");
+				fwrite(token, sizeof(char), 11, target);
 				break;
 			case '(':
-				strcpy(token, "( null\n");
-				fwrite(token, sizeof(char), 7, target);
+				strcpy(token, "43 ( 15\n");
+				fwrite(token, sizeof(char), 8, target);
 				break;
 			case ')':
-				strcpy(token, ") null\n");
-				fwrite(token, sizeof(char), 7, target);
+				strcpy(token, "44 ) 16\n");
+				fwrite(token, sizeof(char), 8, target);
 				break;
-	/*		case '{':
-				strcpy(token, "{ null\n");
-				fwrite(token, sizeof(char), 7, target);
+			case '[':
+				strcpy(token, "48 [ 20\n");
+				fwrite(token, sizeof(char), 8, target);
 				break;
-			case '}':
-				strcpy(token, "} null\n");
-				fwrite(token, sizeof(char), 7, target);
+			case ']':
+				strcpy(token, "49 ] 21\n");
+				fwrite(token, sizeof(char), 8, target);
 				break;
-	*/
 			case ';':
-				strcpy(token, "; null\n");
-				fwrite(token, sizeof(char), 7, target);
+				strcpy(token, "46 ; 18\n");
+				fwrite(token, sizeof(char), 8, target);
+				break;
+			case ',':
+				strcpy(token, "47 , 19\n");
+				fwrite(token, sizeof(char), 8, target);
+				break;
+			case '.':
+				strcpy(token, "72 . 49\n");
+				fwrite(token, sizeof(char), 8, target);
 				break;
 			default:
 					// case 'a'...'z''A'...'Z':
@@ -203,15 +208,10 @@ int LexAnalysis(char* str){
 						if(flag) break;
 						j--;
 						token[token_i] = '\0';
-						if(reserve(token)){
-							fprintf(target, "%s null\n", token);
-						}else if((varw = getVar(token)) != 0){
-							fprintf(target, "ID %d\n", varw);
+						if((reserve_i=reserve(token)) != -1){
+							fprintf(target, "%d %s %d\n", reserve_i, token, reserve_i);
 						}else{
-							varw = malloc(sizeof(int));
-							printf("%d\n", varw);
-							addVar(token, varw);
-							fprintf(target, "ID %d\n", varw);
+							fprintf(target, "35 id %d\n", getVar(token));
 						}
 					}
 					// case '0'...'9':
@@ -223,13 +223,22 @@ int LexAnalysis(char* str){
 								flag = sizeof(token);
 								break;
 							}
+							if(ch == '.' && point_flag){
+								point_flag = 0;
+								token[token_i++] = ch;
+								ch = buf[buf_k][++j];
+							}
 						}while(isDigit(ch));
 						if(flag) break;
 						j--;
-						fprintf(target, "num %s\n", token);
+						// 添加到NUMLIST
+						strcpy(numlist[NUMLIST_CUR_NUM].value, token);
+						numlist[NUMLIST_CUR_NUM].numID = NUMLIST_CUR_NUM;
+						NUMLIST_CUR_NUM++;
+						fprintf(target, "74 num %s\n", token);
 					}
 					else{
-						printf("error char is: %c, code is %d", ch, ch);
+						printf("error char is: %c, code is %d, line is: %d\n", ch, ch, thisline);
 						exit(0);
 					}
 		}
@@ -257,53 +266,34 @@ int isDigit(char ch){
 }
 // 判断是否为保留字， 是则返回1
 int reserve(char* str){
-	FILE *res_w;				// res_w: reserve word(in C, there are 32 words reserved!)
-	if((res_w = fopen("reserve_words.txt", "r")) == NULL){
-		printf("can't open file reserve_words.txt!");
-		exit(0);
-	}
-	// rewind(res_w);
-	char pair[TOKEN_SIZE];
-	int flag = 0;
-	while(!feof(res_w)){
-		fscanf(res_w, "%s", pair);
-		if(strcmp(pair, str) == 0){
-			flag = 1;
+	int flag = -1;
+	int i;
+	for(i=1; i<=VAR_NUM; i++){
+		if(strcmp(var_list[i], str) == 0){
+			flag = i;
 			break;
 		}
 	}
-	fclose(res_w);
 	return flag;
 }
-// 判断是否已存在该标识符, 存在就获取地址
+// 判断是否已存在该标识符, 存在就获取地址,否则就创建
 int getVar(char *str){
-	FILE *v;				// res_w: reserve word(in C, there are 32 words reserved!)
-	if((v = fopen("var_words.txt", "r")) == NULL){
-		printf("can't open file var_words.txt!");
-		exit(0);
-	}
-	char pair[TOKEN_SIZE];
 	int flag = 0;
-	int varw = 0;
-	while(!feof(v)){
-		fscanf(v, "%s %d\n", pair, &varw);
-		if(strcmp(pair, str) == 0){
+	int i;
+	for(i=0; i<IDLIST_CUR_NUM; i++){
+		if(strcmp(idlist[i].name, str) == 0){
 			flag = 1;
 			break;
 		}
 	}
-	fclose(v);
-	if(flag == 1) return varw;
-	else return 0;
-}
-void addVar(char* str, int varw){
-	FILE *v;				// res_w: reserve word(in C, there are 32 words reserved!)
-	if((v = fopen("var_words.txt", "a")) == NULL){
-		printf("can't open file var_words.txt!");
-		exit(0);
+	if(flag == 1) 
+		return idlist[i].entryID;
+	else{
+		idlist[IDLIST_CUR_NUM].entryID = IDLIST_CUR_NUM;
+		strcpy(idlist[IDLIST_CUR_NUM].name, str);
+		IDLIST_CUR_NUM++;
+		return IDLIST_CUR_NUM-1;
 	}
-	fprintf(v, "%s %d\n", str, varw);
-	fclose(v);
 }
 // 重写函数fgets()为FGS();
 int FGS(char* buf, int num, FILE* fp){
@@ -322,5 +312,4 @@ int FGS(char* buf, int num, FILE* fp){
 
 // 局限记录：
 // 1. 不支持浮点数，只能整数
-// 2. 还未写 ++， --， 等
 // 3. 最大问题：输出的文档全是字符串，难以读入判断等等（字符串匹配算法效率会比较低的！！！）

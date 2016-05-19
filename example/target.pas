@@ -1,31 +1,68 @@
-program sort (input,output);
-	var a : array[0..10] of integer;
-	x : integer;
-
-	procedure readarray;
-	var i : integer;
-	begin
-		for i:=1 to 9 do read(a[i])
-	end;
-
-	procedure exchange (i,j:integer)
-	begin
-		x:=a[i]; a[i]:=a[j]; a[j]:=x
-	end;
-
-	procedure quicksort (m,n:integer);
-	var k,v : integer;
-	function partition (y,z :integer):integer;
-		var i,j : integer;
-		begin …a…； …v…；
-			exchange(i,j); ……
-		end;
-	begin ……
-		k=partition(m,n);
-		quicksort(m,k-1);
-		quicksort(k+1,n); ……
-	end;
-
-
-	begin readarray; quicksort(1,9)
-	end. 
+68 program 68
+35 id 0
+43 ( 15
+35 id 1
+47 , 19
+35 id 2
+44 ) 16
+46 ; 18
+65 var 65
+35 id 3
+47 , 19
+35 id 4
+45 : 17
+50 integer 50
+46 ; 18
+66 function 66
+35 id 5
+43 ( 15
+35 id 6
+47 , 19
+35 id 7
+45 : 17
+50 integer 50
+44 ) 16
+45 : 17
+50 integer 50
+46 ; 18
+56 begin 56
+53 if 53
+35 id 7
+42 relop 9
+74 num 0
+54 then 54
+35 id 5
+41 assignop 8
+35 id 6
+55 else 55
+35 id 5
+41 assignop 8
+35 id 5
+43 ( 15
+35 id 7
+47 , 19
+35 id 6
+35 id 8
+35 id 7
+44 ) 16
+57 end 57
+46 ; 18
+56 begin 56
+60 read 60
+43 ( 15
+35 id 3
+47 , 19
+35 id 4
+44 ) 16
+46 ; 18
+61 write 61
+43 ( 15
+35 id 5
+43 ( 15
+35 id 3
+47 , 19
+35 id 4
+44 ) 16
+44 ) 16
+57 end 57
+72 . 49

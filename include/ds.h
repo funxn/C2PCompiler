@@ -5,78 +5,31 @@
 
 #include"const.h"
 
+
+
+// #ifndef	DS_STRUCT
+// #define	DS_STRUCT
+
 // 关键字结构定义
 typedef struct{
 	char name[NAME_LEN];	// 关键字名
 	int keyID;				// 要返回的ID值
 } KEYWORD;
-KEYWORD keyTable[] = {
-	{"integer", 1},		{"real", 2}, 		{"boolean", 3},
-	{"if", 4}, 			{"then", 5}, 		{"else", 6},
-	{"begin", 7}, 		{"end", 8}, 		{"while", 9},
-	{"do", 10}, 		{"read", 11}, 		{"write", 12},
-	{"array", 13}, 		{"of", 14}, 		{"record", 15},
-	{"var", 16}, 		{"function", 17}, 	{"procedure", 18},
-	{"program", 19}, 	{"true", 20}, 		{"false", 21}
-};
 
 // id表
-typedef struct idlist{
+typedef struct{
 	int entryID;					// id表入口
 	char name[NAME_LEN];			// 标识符名
-	struct idlist* next;
-}* IDLIST;
+} IDLIST;
 
 // num表
-typedef struct numlist{
+typedef struct{
 	int numID;						// num表入口
 	char value[VALUE_LEN];			// num的值
-	struct numlist* next;
-}* NUMLIST;
+} NUMLIST;
 
-// 错误类型表：
-char* errList[ERR_TYPES] = {
-	"No num",
-	"No name"
-};
 
-// 产生式定义
-int genOp[GENOP_NUM][OP_LEN] = {
-	{0},
-	{1,-1,4,74},
-	{2,-1,1,27,42,3,43,45},
-	{3,-1,34,28},
-	{4,-1,5,9,15},
-	{5,-1,64,6,45,-1,75},
-	{6,-1,6,45,3,44,7,-1,3,44,7},
-	{7,-1,8,-1,61,47,76,74,74,76,48,62,8,-1,63,6,56,},
-	{8,-1,49,-1,50,-1,51,-1,28,74,74,28},
-	{9,-1,29},
-	{10,-1,11,5,15,},
-	{11,-1,65,27,12,44,8,45,-1,66,27,12,45,},
-	{12,-1,42,13,43,-1,75},
-	{13,-1,14,30},
-	{14,-1,64,3,44,7,-1,3,44,7},
-	{15,-1,55,16,56},
-	{16,-1,17,-1,75},
-	{17,-1,18,31},
-	{18,-1,19,35,22,-1,20,-1,15,-1,52,22,53,18,54,18,-1,57,22,58,18,-1,59,42,3,43,-1,60,21,43},
-	{19,-1,27,-1,27,47,22,28},
-	{20,-1,27,-1,27,42,21,43},
-	{21,-1,22,32},
-	{22,-1,23,36,23,-1,23},
-	{23,-1,24,33,-1,26,24,33},
-	{24,-1,24,39,25,-1,25},
-	{25,-1,27,-1,27,42,21,43,-1,27,47,22,48,-1,28,-1,42,22,43,-1,70,25,-1,68,-1,69},
-	{26,-1,29,-1,30}
-	{0},
-	{28,-1,53,34,28,-1,82},
-	{29,-1,10,52,29,-1,82},
-	{30,-1,52,14,30,-1,82},
-	{31,-1,52,18,31,-1,82},
-	{32,-1,53,22,32,-1,82},
-	{33,-1,48,33,-1,82}
-};
+
 
 // 符号表结构
 typedef struct SymbolNode{
@@ -84,12 +37,12 @@ typedef struct SymbolNode{
 	int addr;		// 地址
 	struct SymbolNode* next;
 }* SN;
-SN symbolTable;
 
 // token[]
 typedef struct{
-	char sign[NAME_LEN];
-	int value;		// the value in op_define.conf
+	int sign;					// the value in 产生式符号对照表.conf
+	char value[NAME_LEN];		
+	int id;						// id表 或 num表入口
 } TOKEN;
 
 
@@ -107,15 +60,47 @@ typedef struct PROJ_SET{
 	int index;						// 项目集规范族的编号
 } PROJECT_SET;
 
-PROJECT_SET PS[PROJECT_SET_NUM];
-int PS_CUR_NUM;						// 记录当前的项目集的个数
 
-// goto数组
-int gto[PROJECT_SET_NUM][VN_NUM];
 
 // action数组
 typedef struct{
 	int rs;
-	int no;
+	int no[OP_LEN];					// 为了R回退时能找到特定的产生式，这里将no修改！
 }act_block;
-act_block act[PROJECT_SET_NUM][VT_NUM];
+
+
+typedef struct TNODE{
+	int no;
+	int is_act;						// 记录是否为要执行的动作
+	int act_no;						// 要执行动作的编号
+	int childList[CHILD_LIST_LEN];
+} TREENODE;
+
+typedef int ElemType;
+typedef int Status;
+
+typedef struct SqStack{
+    ElemType *base;
+    ElemType *top;
+    int stackSize;
+}SqStack;
+
+// #endif
+
+
+extern KEYWORD keyTable[];
+extern IDLIST idlist[IDLIST_LEN];
+extern int IDLIST_CUR_NUM;
+extern NUMLIST numlist[NUMLIST_LEN];
+extern int NUMLIST_CUR_NUM;
+extern char* errList[ERR_TYPES];
+extern int genOp[GENOP_NUM][OP_LEN];
+extern char* reserve_words[RESERVE_WORD_NUM];
+extern char* var_list[];
+extern SN symbolTable;
+extern TOKEN tokenlist[TOKENLIST_LEN];
+extern int TOKEN_CUR_LEN;
+extern PROJECT_SET PS[PROJECT_SET_NUM];
+extern int PS_CUR_NUM;
+extern int gto[PROJECT_SET_NUM][VN_NUM];
+extern act_block act[PROJECT_SET_NUM][VT_NUM];

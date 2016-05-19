@@ -1,0 +1,12 @@
+2016.05.17: 对yufa_func.c的调试
+
+1. Makefile， include/ds.h, lib/ds.c文件的make错误更正
+2. Program received signal SIGSEGV, Segmentation fault.
+0x0000000000400b39 in go_func (ps_index=0, m=1, flag_new_add=0x7fffffffe0b8)
+    at src/yufa_func.c:104
+104				p_set_new.proj[p_set_new.len++] = PS[ps_index].proj[i];
+
+### 原因： go_func中定义的p_set_new.len未初始化，为乱码
+### 方案： 初始化时设为0： PROJECT_SET p_set_new = {0};
+
+3. 
