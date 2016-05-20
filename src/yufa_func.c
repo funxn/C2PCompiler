@@ -133,7 +133,7 @@ void create_p_set(){
 	PS[0].proj[0].pos = 1;
 	PS_CUR_NUM++;
 
-	closure_func(&(PS[0]), &flag_new_add);
+	closure_func(&(PS[0]), &flag_new_add);							// I0项目集标记为PS[i]
 
 	// 当有新项目集加入规范族时，循环继续
 	do{
