@@ -46,19 +46,27 @@ int closure_func(PROJECT_SET* p_set, int *flag_new_add){
 				if(this_proj.thisOp[this_proj.pos+1]==0){
 					memcpy(singleTail, this_proj.tail, sizeof(this_proj.tail));
 				}else{
-					int flag = 0;
+					int flag = 1;							// 含E_NUM的标识
+					int add_e_flag = 0;						// 含空标识，要把小尾巴加入下一个项目
 					int h, g=0;
 					index = 0;
-					memset(fiSet, 0, OP_LEN*sizeof(int));
-					First(this_proj.thisOp[this_proj.pos+1], &index, fiSet);
-					for(h=0; h<OP_LEN && fiSet[h]!=0; h++){
-						if(fiSet[h] == E_NUM){
-							flag = 1;
-							continue;						// 所以此处用了continue
+					int new_pos = this_proj.pos+1;					// 找出小尾巴first集
+
+					while(flag == 1 && this_proj.thisOp[new_pos]!=0){
+						flag = 0;
+						memset(fiSet, 0, OP_LEN*sizeof(int));
+						First(this_proj.thisOp[new_pos], &index, fiSet);
+						for(h=0; h<OP_LEN && fiSet[h]!=0; h++){
+							if(fiSet[h] == E_NUM){
+								add_e_flag = 1;
+								flag = 1;
+								continue;						// 所以此处用了continue
+							}
+							singleTail[g++] = fiSet[h];
 						}
-						singleTail[g++] = fiSet[h];
+						new_pos++;								// 当beta中第一个的first集含空时，要看下一个
 					}
-					if(flag == 1)
+					if(add_e_flag)
 						memcpy(singleTail+g, this_proj.tail, sizeof(this_proj.tail));
 					// print singleTail!! to check!!!
 				}
@@ -155,6 +163,8 @@ void create_p_set(){
 				go_func(i, m_array[k], &flag_new_add);
 		}
 	}while(flag_new_add);
+
+	printf("PS_NUM: %d\n\n", PS_CUR_NUM);
 }
 
 // goto, action的生成：
@@ -174,15 +184,15 @@ void goto_action(){
 
 			// ACC完成
 			if(this_m == 0 && PS[i].proj[j].tail[0] == END_NUM && PS[i].proj[j].thisOp[0] == STA_NUM){
-				act[i][this_m].rs = ACC;
-				act[i][this_m].no[0] = 0;
+				act[i][PS[i].proj[j].tail[0]].rs = ACC;
+				act[i][PS[i].proj[j].tail[0]].no[0] = 0;
 			}
 			// R回退
 			//else if((this_m == 0 && PS[i].proj[j].tail[0] == END_NUM) || this_m == E_NUM){
 			else if(this_m == 0 || this_m == E_NUM){
 				int tail_i = 0;
-				//for(tail_i=0; PS[i].proj[j].tail[0]!=0; tail_i++){
-				for(tail_i=VN_NUM+1; tail_i<=VAR_NUM; tail_i++){
+				for(tail_i=0; PS[i].proj[j].tail[tail_i]!=0; tail_i++){
+				//for(tail_i=VN_NUM+1; tail_i<=VAR_NUM; tail_i++){
 					act[i][PS[i].proj[j].tail[tail_i]].rs = R;
 					// 若是回退项目，直接把产生式赋值给no
 					memcpy(act[i][PS[i].proj[j].tail[tail_i]].no, PS[i].proj[j].thisOp, sizeof(act[i][PS[i].proj[j].tail[tail_i]].no));
@@ -233,7 +243,8 @@ int proj_equal(PROJECT* proj1, PROJECT* proj2){
 	}
 
 
-	for(i=0; i<OP_LEN && proj2->thisOp[i]!=0 && proj1->thisOp[i]!=0; i++){
+//	for(i=0; i<OP_LEN && proj2->thisOp[i]!=0 && proj1->thisOp[i]!=0; i++){
+	for(i=0; i<OP_LEN; i++){
 		if(proj2->thisOp[i]!=0 && proj1->thisOp[i]!=0){
 			if(proj1->thisOp[i] != proj2->thisOp[i])
 				return 0;

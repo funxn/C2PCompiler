@@ -210,6 +210,12 @@ int LexAnalysis(char* str){
 						token[token_i] = '\0';
 						if((reserve_i=reserve(token)) != -1){
 							fprintf(target, "%d %s %d\n", reserve_i, token, reserve_i);
+						}else if(strcmp(token, "mod")==0){
+							fprintf(target, "40 mulop 85\n");
+						}else if(strcmp(token, "div")==0){
+							fprintf(target, "40 mulop 86\n");
+						}else if(strcmp(token, "and")==0){
+							fprintf(target, "40 mulop 87\n");
 						}else{
 							fprintf(target, "35 id %d\n", getVar(token));
 						}
@@ -235,7 +241,7 @@ int LexAnalysis(char* str){
 						strcpy(numlist[NUMLIST_CUR_NUM].value, token);
 						numlist[NUMLIST_CUR_NUM].numID = NUMLIST_CUR_NUM;
 						NUMLIST_CUR_NUM++;
-						fprintf(target, "74 num %s\n", token);
+						fprintf(target, "36 num %s\n", token);
 					}
 					else{
 						printf("error char is: %c, code is %d, line is: %d\n", ch, ch, thisline);

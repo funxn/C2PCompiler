@@ -29,7 +29,7 @@
 53 if 53
 35 id 7
 42 relop 9
-74 num 0
+36 num 0
 54 then 54
 35 id 5
 41 assignop 8
@@ -42,7 +42,7 @@
 35 id 7
 47 , 19
 35 id 6
-35 id 8
+40 mulop 85
 35 id 7
 44 ) 16
 57 end 57

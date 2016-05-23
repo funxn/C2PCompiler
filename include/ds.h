@@ -20,7 +20,7 @@ typedef struct{
 typedef struct{
 	int entryID;					// id表入口
 	char name[NAME_LEN];			// 标识符名
-} IDLIST;
+} IDLIST;							// 保留为结构体以便后续修改
 
 // num表
 typedef struct{
@@ -95,6 +95,7 @@ extern NUMLIST numlist[NUMLIST_LEN];
 extern int NUMLIST_CUR_NUM;
 extern char* errList[ERR_TYPES];
 extern int genOp[GENOP_NUM][OP_LEN];
+extern int genOp_more[GENOP_NUM][OP_LEN];
 extern char* reserve_words[RESERVE_WORD_NUM];
 extern char* var_list[];
 extern SN symbolTable;
