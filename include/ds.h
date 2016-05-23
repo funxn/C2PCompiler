@@ -43,6 +43,7 @@ typedef struct{
 	int sign;					// the value in 产生式符号对照表.conf
 	char value[NAME_LEN];		
 	int id;						// id表 或 num表入口
+	int linenum;
 } TOKEN;
 
 

@@ -11,19 +11,15 @@ TOKEN token[1024];
 int len = 0;
 SqStack *s;
 
-
-	// 表达式存储, 其中f_vn[]存储产生式前面的非终结符, flen[]存储产生式右部的长度信息
-
-
 // 从文件中接收输入并对输入进行处理（保留第一列）
 // token[] 即是 由词法分析器产生的token流
 void lexi_input(){
 	FILE *source;				// source: the C source file
-	if((source = fopen("example/target.pas", "r")) == NULL){
-		printf("can't open file example/target!");
+	if((source = fopen("target.pas", "r")) == NULL){
+		printf("can't open file target.pas!");
 		exit(0);
 	}
-	while(fscanf(source, "%d %s %d\n", token[len].sign, token[len].value, token[len].id) != EOF){
+	while(fscanf(source, "%d %s %d %d\n", &(token[len].sign), token[len].value, &(token[len].id), &(token[len].linenum)) != EOF){
 		len++;
 	}
 }
@@ -90,9 +86,16 @@ void LR(){
 						j++;
 					i++;
 				}
-				if(j == pos_m && cur_token == genOp_more[index_m][i-1]){
-					meaning = genOp_more[index_m][i];								// 此处比较危险！如果一直找不到应该有警告
-					break;
+				if(genOp_more[index_m][i-1] > 100){
+					if(j == pos_m && cur_token == genOp_more[index_m][i-2]){
+						meaning = genOp_more[index_m][i-1];								// 此处比较危险！如果一直找不到应该有警告
+						break;
+					}
+				}else{
+					if(j == pos_m && cur_token == genOp_more[index_m][i-1]){
+						meaning = genOp_more[index_m][i];								// 此处比较危险！如果一直找不到应该有警告
+						break;
+					}
 				}
 				while(genOp_more[index_m][i]!=0 && genOp_more[index_m][i]!=-1)		// 读完后面的，继续搜索下一个
 					i++;															// 不必平衡i，因为0后面就都是0
@@ -115,118 +118,138 @@ void LR(){
 
 
 			// 记录归约时，移进的标号
+			// 归约时当前的token应该为j
 			meaning = 0;
 			for(i=0; i<PS[cur_state].len; i++){
-				if(act[cur_state][cur_token].no[0] == PS[cur_state].proj[i].thisOp[PS[cur_state].proj[i].pos]){
+				if(j == PS[cur_state].proj[i].thisOp[PS[cur_state].proj[i].pos]){
 					index_m = PS[cur_state].proj[i].thisOp[0];
 					pos_m = PS[cur_state].proj[i].pos;
 					break;											// 默认文法是无移进-移进冲突的！ 此处直接break
 				}
 			}
-			for(i=2; genOp_more[index_m][i]!=0; i++){
-				j=0;
-				while(genOp_more[index_m][i]!=0 && genOp_more[index_m][i]!=-1 && j != pos_m){
-					if(genOp_more[index_m][i] < 100)
-						j++;
-					i++;
-				}
-				if(j == pos_m && cur_token == genOp_more[index_m][i-1]){
-					meaning = genOp_more[index_m][i];								// 此处比较危险！如果一直找不到应该有警告
-					break;
-				}
-				while(genOp_more[index_m][i]!=0 && genOp_more[index_m][i]!=-1)		// 读完后面的，继续搜索下一个
-					i++;															// 不必平衡i，因为0后面就都是0
+			if(i<PS[cur_state].len){
+				cur_token = j;
+				for(i=2; genOp_more[index_m][i]!=0; i++){
+					j=0;
+					while(genOp_more[index_m][i]!=0 && genOp_more[index_m][i]!=-1 && j != pos_m){
+						if(genOp_more[index_m][i] < 100)
+							j++;
+						i++;
+					}
+					if(genOp_more[index_m][i-1] > 100){
+						if(j == pos_m && cur_token == genOp_more[index_m][i-2]){
+							meaning = genOp_more[index_m][i-1];								// 此处比较危险！如果一直找不到应该有警告
+							break;
+						}
+					}else{
+						if(j == pos_m && cur_token == genOp_more[index_m][i-1]){
+							meaning = genOp_more[index_m][i];								// 此处比较危险！如果一直找不到应该有警告
+							break;
+						}
+					}
+					while(genOp_more[index_m][i]!=0 && genOp_more[index_m][i]!=-1)		// 读完后面的，继续搜索下一个
+						i++;
+				}									// 不必平衡i，因为0后面就都是0
 			}
 		}else if(act[cur_state][cur_token].rs == ACC){
 			printf("\n\n===============Accept!!!=================\n");
 			break;
 		}else{
 			printf("\n\n===============Error !!!=================\n");
+			printf("ERROR: Grammer wrong at line %d\n", token[cur_pointer].linenum);
+			exit(1);
 			break;
 		}
 
 		k++;
 		it=0;
 
+		// 进行简单的类型检查：
+		if(cur_token == 41){
+			if(strcmp(token[cur_pointer-1].value, token[cur_pointer+1].value) != 0){
+				printf("ERROR: line %d ::: type not match! %s := %s\n", token[cur_pointer].linenum, token[cur_pointer-1].value, token[cur_pointer+1].value);
+			}
+		}
+
 		// 执行具体的语义动作：
 		switch(meaning){
-			case 100:
-				fprintf(fp, "int main");
-				finpos += 8;
-				break;
-			case 101:
-				fprintf(fp, "(");
-				finpos += 1;
-				break;
-			case 102:
-				fprintf(fp, ")\n{");
-				finpos = 0;
-				break;
-			case 103:
-				fprintf(fp, "%s", token[cur_pointer].id);
-				finpos += 4;				// 后面替换为id长度
-				break;
-			case 104:
-				fseek(fp, -finpos, SEEK_CUR);
-				break;
-			case 105:
-				fseek(fp, 0, SEEK_END);
-				fprintf(fp, "['Digits']");
-				finpos += 10;
-				break;
-			case 106:
-				fprintf(fp, "int");
-				finpos += 3;
-				break;
-			case 107:
-				fprintf(fp, "float");
-				finpos += 5;
-				break;
-			case 108:
-				fprintf(fp, "Boolean");
-				finpos += 7;
-				break;
-			case 109:
-				fprintf(fp, "{");
-				finpos += 1;
-				break;
-			case 110:
-				fprintf(fp, "}");
-				finpos += 1;
-				break;
-			case 111:
-				fprintf(fp, "'ID'");
-				finpos += 4;
-				break;
-			case 112:
-				fseek(fp,-finpos, SEEK_CUR);
-				fprintf(fp, "'STANDARD_TYPE'");
-				finpos += 15;
-				break;
-			case 113:
-				fprintf(fp, "void");
-				finpos += 4;
-				break;
-			case 114:
-				fprintf(fp, "'ID'");
-				finpos += 4;
-				break;
-			case 115:
-				fprintf(fp, "(");
-				finpos += 1;
-				break;
-			case 116:
-				fprintf(fp, ")");
-				finpos += 1;
-				break;
-			case 117:
-				fseek(fp, -finpos, SEEK_CUR);
-				break;
-			case 118:
-				fseek(fp, 0, SEEK_END);
-				break;
-			case 119:
-				printf("'ASSIGNOP'");
+			// case 100:
+			// 	fprintf(fp, "int main");
+			// 	finpos += 8;
+			// 	break;
+			// case 101:
+			// 	fprintf(fp, "(");
+			// 	finpos += 1;
+			// 	break;
+			// case 102:
+			// 	fprintf(fp, ")\n{");
+			// 	finpos = 0;
+			// 	break;
+			// case 103:
+			// 	fprintf(fp, "%s", idlist[token[cur_pointer].id].name);
+			// 	finpos += 4;				// 后面替换为id长度
+			// 	break;
+			// case 104:
+			// 	fseek(fp, -finpos, SEEK_CUR);
+			// 	break;
+			// case 105:
+			// 	fseek(fp, 0, SEEK_END);
+			// 	fprintf(fp, "['Digits']");
+			// 	finpos += 10;
+			// 	break;
+			// case 106:
+			// 	fprintf(fp, "int");
+			// 	finpos += 3;
+			// 	break;
+			// case 107:
+			// 	fprintf(fp, "float");
+			// 	finpos += 5;
+			// 	break;
+			// case 108:
+			// 	fprintf(fp, "Boolean");
+			// 	finpos += 7;
+			// 	break;
+			// case 109:
+			// 	fprintf(fp, "{");
+			// 	finpos += 1;
+			// 	break;
+			// case 110:
+			// 	fprintf(fp, "}");
+			// 	finpos += 1;
+			// 	break;
+			// case 111:
+			// 	fprintf(fp, "'ID'");
+			// 	finpos += 4;
+			// 	break;
+			// case 112:
+			// 	fseek(fp,-finpos, SEEK_CUR);
+			// 	fprintf(fp, "'STANDARD_TYPE'");
+			// 	finpos += 15;
+			// 	break;
+			// case 113:
+			// 	fprintf(fp, "void");
+			// 	finpos += 4;
+			// 	break;
+			// case 114:
+			// 	fprintf(fp, "'ID'");
+			// 	finpos += 4;
+			// 	break;
+			// case 115:
+			// 	fprintf(fp, "(");
+			// 	finpos += 1;
+			// 	break;
+			// case 116:
+			// 	fprintf(fp, ")");
+			// 	finpos += 1;
+			// 	break;
+			// case 117:
+			// 	fseek(fp, -finpos, SEEK_CUR);
+			// 	break;
+			// case 118:
+			// 	fseek(fp, 0, SEEK_END);
+			// 	break;
+			// case 119:
+			// 	printf("'ASSIGNOP'");
 
 			default:
 				printf("ERROR: no such meaning: %d\n", meaning);
@@ -235,7 +258,14 @@ void LR(){
 	}while(1);
 }
 
-int main(){
+int main(int argc, char* argv[]){
+	// 词法分析
+	if(argc<1){
+		printf("Usage: ./a.out [sourcefile]\n");
+		exit(0);
+	}
+	LexAnalysis(argv[1]);
+
 	// 处理输入
 	create_p_set();
 	goto_action();

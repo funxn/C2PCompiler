@@ -7,7 +7,7 @@
 #define		ERR_TYPES	10
 
 // 记录保留字数量
-#define		RESERVE_WORD_NUM	50
+#define		RESERVE_WORD_NUM	51
 
 // IDLIST, NUMLIST的长度
 #define 	IDLIST_LEN 			200
@@ -17,13 +17,13 @@
 #define		TOKENLIST_LEN		1024
 
 // 记录产生是非终结符数量
-#define		VAR_NUM		74
+#define		VAR_NUM		75
 #define		VN_NUM		34
 #define		VT_NUM		VAR_NUM - VN_NUM
 #define		E_NUM		73						// &的编号
 #define		GENOP_NUM	VN_NUM+1
-#define		STA_NUM		75 						// 记录开始符号 S’ 的编号
-#define		END_NUM		76 						// 记录 $ 的编号
+#define		STA_NUM		76 						// 记录开始符号 S’ 的编号
+#define		END_NUM		77 						// 记录 $ 的编号
 
 // 供action表使用的几个常量
 #define		S 			1

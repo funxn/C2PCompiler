@@ -4,7 +4,7 @@
 
 // 词法分析程序
 // 返回TOKEN序列
-extern TOKEN Scanner();
+extern int LexAnalysis(char* str);
 
 /* 语法语义分析程序, 结合翻译方案，产生目标语言
  * 返回void

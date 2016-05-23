@@ -17,13 +17,13 @@ int getVar(char* str);
 void addVar(char* str, int varw);
 int FGS(char* buf, int num, FILE* fp);
 
-int main(int argc, char* argv[]){
-	if(argc<1){
-		printf("Usage: ./a.out [sourcefile]\n");
-		exit(0);
-	}
-	LexAnalysis(argv[1]);
-}
+// int main(int argc, char* argv[]){
+// 	if(argc<1){
+// 		printf("Usage: ./a.out [sourcefile]\n");
+// 		exit(0);
+// 	}
+// 	LexAnalysis(argv[1]);
+// }
 
 // 词法分析主程序
 int LexAnalysis(char* str){
@@ -36,7 +36,7 @@ int LexAnalysis(char* str){
 	}
 	FILE *target;				// source: the C source file
 	if((target = fopen("target.pas", "w")) == NULL){
-		printf("can't open file target.c!");
+		printf("can't open file target.pas!");
 		exit(0);
 	}
 
@@ -83,12 +83,10 @@ int LexAnalysis(char* str){
 			case '<':
 				ch = buf[buf_k][++j];
 				if(ch == '='){
-					strcpy(token, "42 relop 12\n");
-					fwrite(token, sizeof(char), 12, target);
+					fprintf(target, "42 relop 12 %d\n", thisline);
 				}
 				else if(ch == '>'){
-					strcpy(token, "42 relop 10\n");
-					fwrite(token, sizeof(char), 12, target);
+					fprintf(target, "42 relop 10 %d\n", thisline);
 				}
 				else if(ch == '\0'){
 					token[0] = '<';
@@ -96,15 +94,13 @@ int LexAnalysis(char* str){
 				}
 				else{
 					j--;
-					strcpy(token, "42 relop 11\n");
-					fwrite(token, sizeof(char), 12, target);
+					fprintf(target, "42 relop 11 %d\n", thisline);
 				}
 				break;
 			case '>':
 				ch = buf[buf_k][++j];
 				if(ch == '='){
-					strcpy(token, "42 relop 14\n");
-					fwrite(token, sizeof(char), 12, target);
+					fprintf(target, "42 relop 14 %d\n", thisline);
 				}
 				else if(ch == '\0'){
 					token[0] = '>';
@@ -112,13 +108,11 @@ int LexAnalysis(char* str){
 				}
 				else{
 					j--;
-					strcpy(token, "42 relop 13\n");
-					fwrite(token, sizeof(char), 12, target);
+					fprintf(target, "42 relop 13 %d\n", thisline);
 				}
 				break;
 			case '=':
-				strcpy(token, "42 relop 9\n");
-				fwrite(token, sizeof(char), 11, target);
+				fprintf(target, "42 relop 9 %d\n", thisline);
 				break;
 			case '{':
 				while((ch = buf[buf_k][++j]) != '}' && ch != '\0'){
@@ -130,15 +124,14 @@ int LexAnalysis(char* str){
 					flag = sizeof(token);
 				}
 				else if(ch == EOF){
-					printf("error: unclosed comment! Line: %d\n", thisline);
+					printf("ERROR: unclosed comment! Line: %d\n", thisline);
 					exit(1);
 				}
 				break;
 			case ':':
 				ch = buf[buf_k][++j];
 				if(ch == '='){
-					strcpy(token, "41 assignop 8\n");
-					fwrite(token, sizeof(char), 14, target);
+					fprintf(target, "41 assignop 8 %d\n", thisline);
 				}
 				else if(ch == '\0'){
 					token[0] = ':';
@@ -146,53 +139,52 @@ int LexAnalysis(char* str){
 				}
 				else{
 					j--;
-					strcpy(token, "45 : 17\n");
-					fwrite(token, sizeof(char), 8, target);
+					fprintf(target, "45 : 17 %d\n", thisline);
 				}
 				break;
 			case '+':
-				strcpy(token, "39 addop 2\n");
-				fwrite(token, sizeof(char), 11, target);
+				fprintf(target, "39 addop 2 %d\n", thisline);
 				break;
 			case '-':
-				strcpy(token, "39 addop 3\n");
-				fwrite(token, sizeof(char), 11, target);
+				fprintf(target, "39 addop 3 %d\n", thisline);
 				break;
 			case '*':
-				strcpy(token, "40 mulop 4\n");
-				fwrite(token, sizeof(char), 11, target);
+				fprintf(target, "40 mulop 4 %d\n", thisline);
 				break;
 			case '/':
-				strcpy(token, "40 mulop 5\n");
-				fwrite(token, sizeof(char), 11, target);
+				fprintf(target, "40 mulop 5 %d\n", thisline);
 				break;
 			case '(':
-				strcpy(token, "43 ( 15\n");
-				fwrite(token, sizeof(char), 8, target);
+				fprintf(target, "43 ( 15 %d\n", thisline);
 				break;
 			case ')':
-				strcpy(token, "44 ) 16\n");
-				fwrite(token, sizeof(char), 8, target);
+				fprintf(target, "44 ) 16 %d\n", thisline);
 				break;
 			case '[':
-				strcpy(token, "48 [ 20\n");
-				fwrite(token, sizeof(char), 8, target);
+				fprintf(target, "48 [ 20 %d\n", thisline);
 				break;
 			case ']':
-				strcpy(token, "49 ] 21\n");
-				fwrite(token, sizeof(char), 8, target);
+				fprintf(target, "49 ] 21 %d\n", thisline);
 				break;
 			case ';':
-				strcpy(token, "46 ; 18\n");
-				fwrite(token, sizeof(char), 8, target);
+				fprintf(target, "46 ; 18 %d\n", thisline);
 				break;
 			case ',':
-				strcpy(token, "47 , 19\n");
-				fwrite(token, sizeof(char), 8, target);
+				fprintf(target, "47 , 19 %d\n", thisline);
 				break;
 			case '.':
-				strcpy(token, "72 . 49\n");
-				fwrite(token, sizeof(char), 8, target);
+				ch = buf[buf_k][++j];
+				if(ch == '.'){
+					fprintf(target, "75 .. 50 %d\n", thisline);
+				}
+				// else if(ch == '\0'){					// 不可能出现两个.在不同行上，否则视为出错！
+				// 	token[0] = '.';
+				// 	flag = sizeof(token);
+				// }
+				else{
+					j--;
+					fprintf(target, "72 . 49 %d\n", thisline);
+				}
 				break;
 			default:
 					// case 'a'...'z''A'...'Z':
@@ -209,15 +201,15 @@ int LexAnalysis(char* str){
 						j--;
 						token[token_i] = '\0';
 						if((reserve_i=reserve(token)) != -1){
-							fprintf(target, "%d %s %d\n", reserve_i, token, reserve_i);
+							fprintf(target, "%d %s %d %d\n", reserve_i, token, reserve_i, thisline);
 						}else if(strcmp(token, "mod")==0){
-							fprintf(target, "40 mulop 85\n");
+							fprintf(target, "40 mulop 7 %d\n", thisline);
 						}else if(strcmp(token, "div")==0){
-							fprintf(target, "40 mulop 86\n");
-						}else if(strcmp(token, "and")==0){
-							fprintf(target, "40 mulop 87\n");
+							fprintf(target, "40 mulop 6 %d\n", thisline);
+						}else if(strcmp(token, "not")==0){
+							fprintf(target, "71 not 43 %d\n", thisline);
 						}else{
-							fprintf(target, "35 id %d\n", getVar(token));
+							fprintf(target, "35 id %d %d\n", getVar(token), thisline);
 						}
 					}
 					// case '0'...'9':
@@ -240,8 +232,11 @@ int LexAnalysis(char* str){
 						// 添加到NUMLIST
 						strcpy(numlist[NUMLIST_CUR_NUM].value, token);
 						numlist[NUMLIST_CUR_NUM].numID = NUMLIST_CUR_NUM;
+						if(point_flag == 0)							// num标记为小数
+							fprintf(target, "36 num %d %d\n", NUMLIST_CUR_NUM, thisline);
+						else
+							fprintf(target, "36 digits %d %d\n", NUMLIST_CUR_NUM, thisline);
 						NUMLIST_CUR_NUM++;
-						fprintf(target, "36 num %s\n", token);
 					}
 					else{
 						printf("error char is: %c, code is %d, line is: %d\n", ch, ch, thisline);
