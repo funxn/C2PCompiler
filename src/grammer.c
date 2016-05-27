@@ -11,6 +11,62 @@ TOKEN token[1024];
 int len = 0;
 SqStack *s;
 
+char ftemp[100];//存储put_ptr_first操作之前的字符
+char type[100];
+char fun_name[100];
+char  FileTemp[100];//存储id.val
+char judege[100];//判断addop等是不是等于:=
+char ju_temp=0;
+int judege_if=0,fi,fj;//fi表示scanf后跟的符号个数
+					//fj表示printf后跟的符号个数，二者也可用来作为循环变量
+FILE *fileptr;
+
+void put_ptr_first(FILE *fp,char *ftemp)
+{
+
+	char type[100];
+	int fi = 0;//用于记录文件行数     
+	if((fileptr=fopen("temp.c", "w+")) == NULL)
+	{
+	printf("can't open temp.c\n");
+	exit(1);
+	}
+	fseek(fp,0, SEEK_SET);//回到fp文件头
+	while(fgets(type,100,fp) != NULL )//查询行数
+		fi++;
+	fseek(fp,0, SEEK_SET);//回到fp文件头
+	for(;fi>0;fi--)//向temp.c中写，最后一行存到temp中
+	{
+		if(fi == 1)
+		{
+			fgets(ftemp,100,fp);
+		}
+		else
+		{
+			fgets(type,100,fp);
+			fputs(type,fileptr);
+		}		
+	}
+	fclose(fp);
+	if((fp=fopen("target.c", "w")) == NULL)//关闭，再以w方式打开，清空文件
+	{
+	printf("can't open temp.c\n");
+	exit(1);
+	}
+	fseek(fileptr,0,SEEK_SET);
+	while(fgets(type,100,fileptr) != NULL)
+		fputs(type,fp);//写回文件
+	fclose(fileptr);
+	fprintf(fp, "\n");
+	fclose(fp);
+	if((fp=fopen("target.c", "a+")) == NULL)//最后以a+方式打开，允许读写
+	{
+	printf("can't open temp.c\n");
+	exit(1);
+	}
+}
+
+
 // 从文件中接收输入并对输入进行处理（保留第一列）
 // token[] 即是 由词法分析器产生的token流
 void lexi_input(){
@@ -52,7 +108,7 @@ void LR(){
 	
 	FILE* fp;
 	int finpos=0;						// 记录当前插入位置距行首距离, 遇\n则置零
-	if((fp=fopen("target.c", "a+")) == NULL){
+	if((fp=fopen("target.c", "w+")) == NULL){
 		printf("can't open target.c\n");
 		exit(1);
 	}
@@ -172,90 +228,331 @@ void LR(){
 		}
 
 		// 执行具体的语义动作：
+				// fseek(fp,-finpos, SEEK_CUR);
+				// finpos = 0;
+				// break;
+				// fseek(fp, 0, SEEK_END);
+				// break;
 		switch(meaning){
-			// case 100:
-			// 	fprintf(fp, "int main");
-			// 	finpos += 8;
-			// 	break;
-			// case 101:
-			// 	fprintf(fp, "(");
-			// 	finpos += 1;
-			// 	break;
-			// case 102:
-			// 	fprintf(fp, ")\n{");
-			// 	finpos = 0;
-			// 	break;
-			// case 103:
-			// 	fprintf(fp, "%s", idlist[token[cur_pointer].id].name);
-			// 	finpos += 4;				// 后面替换为id长度
-			// 	break;
-			// case 104:
-			// 	fseek(fp, -finpos, SEEK_CUR);
-			// 	break;
-			// case 105:
-			// 	fseek(fp, 0, SEEK_END);
-			// 	fprintf(fp, "['Digits']");
-			// 	finpos += 10;
-			// 	break;
-			// case 106:
-			// 	fprintf(fp, "int");
-			// 	finpos += 3;
-			// 	break;
-			// case 107:
-			// 	fprintf(fp, "float");
-			// 	finpos += 5;
-			// 	break;
-			// case 108:
-			// 	fprintf(fp, "Boolean");
-			// 	finpos += 7;
-			// 	break;
-			// case 109:
-			// 	fprintf(fp, "{");
-			// 	finpos += 1;
-			// 	break;
-			// case 110:
-			// 	fprintf(fp, "}");
-			// 	finpos += 1;
-			// 	break;
-			// case 111:
-			// 	fprintf(fp, "'ID'");
-			// 	finpos += 4;
-			// 	break;
-			// case 112:
-			// 	fseek(fp,-finpos, SEEK_CUR);
-			// 	fprintf(fp, "'STANDARD_TYPE'");
-			// 	finpos += 15;
-			// 	break;
-			// case 113:
-			// 	fprintf(fp, "void");
-			// 	finpos += 4;
-			// 	break;
-			// case 114:
-			// 	fprintf(fp, "'ID'");
-			// 	finpos += 4;
-			// 	break;
-			// case 115:
-			// 	fprintf(fp, "(");
-			// 	finpos += 1;
-			// 	break;
-			// case 116:
-			// 	fprintf(fp, ")");
-			// 	finpos += 1;
-			// 	break;
-			// case 117:
-			// 	fseek(fp, -finpos, SEEK_CUR);
-			// 	break;
-			// case 118:
-			// 	fseek(fp, 0, SEEK_END);
-			// 	break;
-			// case 119:
-			// 	printf("'ASSIGNOP'");
+			case 100:
+				fprintf(fp, "\nreturn 0;\n}");
+				break;
+			case 101:
+				fprintf(fp, "#include<stdio.h>\n" );
+				fprintf(fp, "int main(int argc,char** argv)\n{\n");
+				break;
+			case 102:
+				fprintf(fp, "//");
+				break;
+			case 103:
+				fprintf(fp, "\n");			
+				break;
+			case 104:
+				fprintf(fp, "%s", idlist[token[cur_pointer].id].name);//多两个空格
+				fi++;
+				break;
+			case 105:
+				fprintf(fp, ",");				
+				break;
+			case 106:
+				fprintf(fp, ";\n");
+				break;
+			case 107:
+				fprintf(fp, "int ");
+				break;
+			case 108:
+				fprintf(fp, "float ");
+				break;
+			case 109:
+				fprintf(fp, "Boolean ");
+				break;
+			case 112:
+				fprintf(fp, "\n{\n");
+				break;
+			case 113:
+				fprintf(fp, "\n}\n");
+				break;
+			case 114:
+			//put_ptr_first
+				put_ptr_first(fp,ftemp);
+			//print temp.val
+				fprintf(fp, "%s", FileTemp);
+			//put_ptr_end
+				fseek(fp, 0, SEEK_END);
+				fprintf(fp, "%s",ftemp);
+			//put_ptr_first
+				put_ptr_first(fp,ftemp);
+				break;
+			case 115:
+			//put_ptr_first
+				put_ptr_first(fp,ftemp);;
+			//print temp.val
+				fprintf(fp, "%s", FileTemp);
+			//put_ptr_end
+				fseek(fp, 0, SEEK_END);
+				fprintf(fp, "%s",ftemp);
+			//put_ptr_first
+				put_ptr_first(fp,ftemp);
+			//print void
+				fprintf(fp, "void");
+			//put_ptr_end
+				fseek(fp, 0, SEEK_END);
+				fprintf(fp, "%s",ftemp);
+				break;
+			case 116:
+			//put_ptr_first
+				put_ptr_first(fp,ftemp);
+			//print (
+				fprintf(fp, "(");
+			//put_ptr_end
+				fseek(fp, 0, SEEK_END);
+				fputs(ftemp,fp);
+			//print )
+				fprintf(fp, ")");
+				break;
+			case 117:  			//print assignop.val
+				if(strcmp(judege,reserve_words[token[cur_pointer].id])==0)
+				{
+					fprintf(fp, "=");
+				}
+				else
+				{
+					fprintf(fp, " %s ",reserve_words[token[cur_pointer].id]);
+				}	
+				
+				break;
+			case 118:
+				fprintf(fp, "if(");
+				judege_if = 1;//证明前方有If出现
+				break;
+			case 119:
+			    fprintf(fp, "else\n{\n");
+				break;
+			case 120:
+				fi=0;//fi存储符号个数
+				break;
+			case 121:
+				fprintf(fp, ")");
+				break;
+			case 122:
+				fj=0;//fj存储符号个数
+				break;
+			case 123:
+				fprintf(fp, "while(");
+				break;
+			case 124:
+				fprintf(fp, ")\n{\n");
+			case 125:
+			    fprintf(fp, "\n}");
+				break;
+			case 126:
+			    fprintf(fp, "%s[",idlist[token[cur_pointer].id].name);
+				finpos += strlen(idlist[token[cur_pointer].id].name)+1;
+				break;
+			case 127:
+				fprintf(fp, "]");
+				break;
+			case 128:
+				fprintf(fp, "(");
+				break;
+			case 129:
+				fprintf(fp, "%s(",idlist[token[cur_pointer].id].name);
+				break;
+			case 130:
+			    fprintf(fp, "%s",numlist[token[cur_pointer].id].value);
+				break;
+			case 131:
+				//put_ptr_first
+				put_ptr_first(fp,ftemp);
+				//print !(
+				fprintf(fp, "!(");
+				//put_ptr_end
+				fseek(fp, 0, SEEK_END);
+				fputs(ftemp,fp);
+				//print )
+				fprintf(fp, ")");
+				break;
+			case 132:
+				fprintf(fp, "ture");
+				break;
+			case 133:
+				fprintf(fp, "false");
+				break;
+			case 134:
+				fprintf(fp, "+");
+				break;
+			case 135:
+				fprintf(fp, "-");
+				break;
+			case 136:
+				fprintf(fp, ")\n");
+				break;
+			case 137:
+				if(strcmp("=",reserve_words[token[cur_pointer].id])==0)
+				{
+					if(judege_if == 1)
+					{
+						fprintf(fp, "==(");
+						judege_if = 0;
+					}
+					else
+					{
+						fprintf(fp, " %s (",reserve_words[token[cur_pointer].id]);
+					}
+
+				}
+				else if(strcmp(":=",reserve_words[token[cur_pointer].id])==0)//如果符号是:=
+				{
+					put_ptr_first(fp,type);
+			    	if(strcmp(type,fun_name)==0)//如果：＝前是本函数的函数名，则打印return
+			    	{
+			    		fprintf(fp, "return (");
+			    	}
+			    	else
+			    	{
+			    		fprintf(fp, "=(");
+			    	}	
+				}
+			    else if(strcmp("mod",reserve_words[token[cur_pointer].id])==0)
+				{
+					fprintf(fp, "%%(");
+				}
+				else
+				{
+					fprintf(fp, " %s (",reserve_words[token[cur_pointer].id]);
+				}	
+				break;
+			case 138:
+				fprintf(fp, ";\n}");
+				break;
+			case 139:
+				fprintf(fp, ");\n");
+				break;
+			case 140:
+				put_ptr_first(fp,type);
+				fputs(type,fp);
+				fputs(ftemp,fp);
+			    fseek(fp,-finpos, SEEK_CUR);//回到行首
+			    put_ptr_first(fp,ftemp);
+			   // fputs(ftemp,fp);
+			    for(fi=0;fi<strlen(ftemp);fi++)//处理此行数据，加int
+			    {
+			    	if(ftemp[fi]==',')
+			    	{
+			    		ju_temp = ++fi;
+			    		for(fj=strlen(ftemp)-1;fj>=ju_temp;fj--)
+			    		{
+			    			ftemp[fj+strlen(type)]=ftemp[fj];//逗号后，数组下标统一向后移
+			    		}
+			    		for(fj=0;fj<strlen(type);fj++)
+			    		{
+			    			ftemp[ju_temp]=type[fj];
+			    			ju_temp++;
+			    		}
+			    	}
+			    	ju_temp=0;
+			    }
+			    fputs(ftemp,fp);
+				break;
+			case 141:
+				put_ptr_first(fp,type);
+			    fprintf(fp, "scanf(\"");
+			    for(;fi>0;fi--)//fi表示scanf后跟的符号个数
+			    {
+			    	fprintf(fp, "%%d" );
+			    }
+			    for(fi=0;fi<strlen(type);fi++)
+			    {
+			    	if(type[fi] == ',' || fi== 0 )
+			    	{
+			    		ju_temp = ++fi;
+			    		if(fi == 1)
+			    			ju_temp--;
+			    		for(fj=strlen(type)-1;fj>=ju_temp;fj--)
+			    		{
+			    			type[fj+1]=type[fj];//数组下标后移
+			    		}
+			    		type[ju_temp] = '&';
+			    	}
+			    }
+			    fprintf(fp, "\",%s);\n",type);
+				break;
+			case 142:
+				put_ptr_first(fp,type);
+			    fprintf(fp, "printf(\"");
+			    for(;fj>0;fj--)//fj表示printf后跟的表达式个数
+			    {
+			    	fprintf(fp, "%%d" );
+			    }
+			    fprintf(fp, "\",%s);\n",type);
+				break;
+			case 143:
+				fj++;
+				break;
+			case 144:
+				fprintf(fp, ")");
+				fj--;
+				break;
+			case 145:
+				strcpy(fun_name,FileTemp);
+				fprintf(fp, "\n{\n" );
+				break;
+
+			case 200:
+				 put_ptr_first(fp,ftemp);
+
+				break;
+			case 201:
+				fseek(fp, 0, SEEK_END);//put_ptr_end
+				fputs(ftemp,fp);
+				break;
+			case 202:
+				strcpy(FileTemp,idlist[token[cur_pointer].id].name);//temp.val=id.val
+				break;
 
 			default:
 				printf("ERROR: no such meaning: %d\n", meaning);
 				// exit(1);
 		}
 	}while(1);
+}
+
+// 由于顺序打印出来的文件有些错乱，此处要分几个文件输出，最后合并文件
+void MergeFile()
+{
+	FILE * fp1,*fp2,*fp3;
+	int i=0;
+	char temp[100];
+	if((fp1=fopen("target.c","r+"))==NULL)
+		printf("open target.c error\n");
+	if((fp2=fopen("temp.c","w+"))==NULL)
+		printf("open temp.c error\n");
+	if((fp3=fopen("temp2.c","w+"))==NULL)
+		printf("open temp2.c error\n");
+	fseek(fp1,0,SEEK_SET);
+	while(fgets(temp,100,fp1) != NULL)//获取文件行数
+	{
+		i++;
+		if(i == 1 || ( (i>=13) && (i<=29) ) )
+			fputs(temp,fp2);
+		else
+			fputs(temp,fp3);
+	}
+	fclose(fp1);
+	if((fp1=fopen("target.c","w+"))==NULL)//关闭再打开 清空
+		printf("open target.c error\n");
+	fseek(fp2,0,SEEK_SET);
+	fseek(fp3,0,SEEK_SET);
+	while(fgets(temp,100,fp2) != NULL)
+	{
+
+		fputs(temp,fp1);
+	}
+	while(fgets(temp,100,fp3) != NULL)
+	{
+
+		fputs(temp,fp1);
+	}
 }
 
 int main(int argc, char* argv[]){
@@ -271,6 +568,7 @@ int main(int argc, char* argv[]){
 	goto_action();
 	lexi_input();
 	LR();
+	MergeFile();
 
 	return 0;
 }
