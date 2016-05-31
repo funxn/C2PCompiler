@@ -285,7 +285,7 @@ void LR(){
 				break;
 			case 115:
 			//put_ptr_first
-				put_ptr_first(fp,ftemp);;
+				put_ptr_first(fp,ftemp);
 			//print temp.val
 				fprintf(fp, "%s", FileTemp);
 			//put_ptr_end
