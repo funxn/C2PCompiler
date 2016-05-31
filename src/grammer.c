@@ -511,8 +511,9 @@ void LR(){
 				break;
 
 			default:
-				printf("ERROR: no such meaning: %d\n", meaning);
+				// printf("ERROR: no such meaning: %d\n", meaning);
 				// exit(1);
+				break;
 		}
 	}while(1);
 }
@@ -520,7 +521,7 @@ void LR(){
 // 由于顺序打印出来的文件有些错乱，此处要分几个文件输出，最后合并文件
 void MergeFile()
 {
-	FILE * fp1,*fp2,*fp3;
+	FILE * fp1,*fp2,*fp3, *fp;
 	int i=0;
 	char temp[100];
 	if((fp1=fopen("target.c","r+"))==NULL)
@@ -539,8 +540,8 @@ void MergeFile()
 			fputs(temp,fp3);
 	}
 	fclose(fp1);
-	if((fp1=fopen("target.c","w+"))==NULL)//关闭再打开 清空
-		printf("open target.c error\n");
+	if((fp1=fopen("target_temp.c","w+"))==NULL)//关闭再打开 清空
+		printf("open target_temp.c error\n");
 	fseek(fp2,0,SEEK_SET);
 	fseek(fp3,0,SEEK_SET);
 	while(fgets(temp,100,fp2) != NULL)
@@ -553,6 +554,21 @@ void MergeFile()
 
 		fputs(temp,fp1);
 	}
+
+	// 删除多余的空行：@xiaofeng:
+	if((fp=fopen("target.c","w+"))==NULL)//关闭再打开 清空
+		printf("open target.c error\n");
+	fseek(fp1, 0, SEEK_SET);
+	while(fgets(temp, 100, fp1) != NULL)
+		if(strcmp(temp, "\n") != 0){
+			fputs(temp, fp);
+		}
+
+	fclose(fp);
+	fclose(fp1);
+	fclose(fp2);
+	fclose(fp3);
+	system("rm -rf temp.c temp2.c target_temp.c");
 }
 
 int main(int argc, char* argv[]){

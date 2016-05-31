@@ -7,5 +7,5 @@ else gcd:=gcd(b,a mod b)
 end;
 begin
 read(x,y);
-write(gcd(x,y))
+write(gcd(x,y));
 end.
