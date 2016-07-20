@@ -410,10 +410,7 @@ void LR(){
 			    	}
 			    	else
 			    	{
-<<<<<<< HEAD
 			    		fputs(type,fp);///
-=======
->>>>>>> 8bacc4d3d8db95744841722753f2acb369722d9e
 			    		fprintf(fp, "=(");
 			    	}	
 				}
@@ -526,7 +523,6 @@ void LR(){
 void MergeFile()
 {
 	FILE * fp1,*fp2,*fp3, *fp;
-<<<<<<< HEAD
 	int i,j,k,l,ju,ju_temp=0;//j,k存储子函数开始和结束的行数，l记录花括号
 	char temp[100];
 
@@ -571,10 +567,6 @@ void MergeFile()
 	}
 
 	fclose(fp1);
-=======
-	int i=0;
-	char temp[100];
->>>>>>> 8bacc4d3d8db95744841722753f2acb369722d9e
 	if((fp1=fopen("target.c","r+"))==NULL)
 		printf("open target.c error\n");
 	if((fp2=fopen("temp.c","w+"))==NULL)
@@ -582,18 +574,11 @@ void MergeFile()
 	if((fp3=fopen("temp2.c","w+"))==NULL)
 		printf("open temp2.c error\n");
 	fseek(fp1,0,SEEK_SET);
-<<<<<<< HEAD
 	i=0;
 	while(fgets(temp,100,fp1) != NULL)//获取文件行数
 	{
 		i++;
 		if(i == 1 || ( (i>=j) && (i<=k) ) )
-=======
-	while(fgets(temp,100,fp1) != NULL)//获取文件行数
-	{
-		i++;
-		if(i == 1 || ( (i>=13) && (i<=29) ) )
->>>>>>> 8bacc4d3d8db95744841722753f2acb369722d9e
 			fputs(temp,fp2);
 		else
 			fputs(temp,fp3);
@@ -628,12 +613,9 @@ void MergeFile()
 	fclose(fp2);
 	fclose(fp3);
 	system("rm -rf temp.c temp2.c target_temp.c");
-<<<<<<< HEAD
 
 	}
 
-=======
->>>>>>> 8bacc4d3d8db95744841722753f2acb369722d9e
 }
 
 int main(int argc, char* argv[]){
